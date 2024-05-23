@@ -12,7 +12,6 @@ class TransactionScreen extends StatelessWidget {
     return Consumer(
       builder: (context, ref, child) {
         final AsyncValue transactions = ref.watch(transactionProvider);
-        final AsyncValue dailySpending = ref.watch(dailySpendingProvider);
 
         return Center(
           child: switch (transactions) {
@@ -28,37 +27,42 @@ class TransactionScreen extends StatelessWidget {
 }
 
 class TransactionsGrid extends StatelessWidget {
-  final List<Transaction> transactions;
+  final List<DailyTransactions> transactions;
 
   const TransactionsGrid({super.key, required this.transactions});
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 30), // 7 days a week
-      itemCount: 365,
+      gridDelegate:
+          const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 30),
+      itemCount: transactions.length,
       itemBuilder: (context, index) {
         Color color = _getColorForSpending(transactions[index].amount);
         return GestureDetector(
           onTap: () {
-            showModalBottomSheet(
-              context: context,
-              builder: (context) {
-                // return ListView.builder(
-                //   itemCount: transactionsForDay.length,
-                //   itemBuilder: (context, index) {
-                //     Transaction transaction = transactionsForDay[index];
-                return ListTile(
-                  title: Text(
-                      DateFormat.yMMMMd().format(transactions[index].date)),
-                  subtitle: const Text("Mock Transaction"),
-                  trailing: Text(transactions[index].amount.toStringAsFixed(2)),
-                );
-                //   },
-                // );
-              },
-            );
+            if (transactions[index].transactions.length > 1) {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return ListView.builder(
+                    itemCount: transactions[index].transactions.length,
+                    itemBuilder: (context, innerIndex) {
+                      Transaction transaction =
+                          transactions[index].transactions[innerIndex];
+                      return ListTile(
+                        title: Text(transaction.category),
+                        subtitle: Text(DateFormat.yMMMMd()
+                            .format(transactions[index].date)),
+                        trailing: Text(transaction.amount.toStringAsFixed(2)),
+                      );
+                    },
+                  );
+                },
+              );
+            } else {
+              print('No transaction available at index 1');
+            }
           },
           child: Container(
             color: color,
@@ -70,15 +74,14 @@ class TransactionsGrid extends StatelessWidget {
   }
 
   Color _getColorForSpending(double spending) {
-    // Define color scale here
     if (spending == 0) {
       return Colors.white;
     } else if (spending < 50) {
-      return Colors.lightGreen;
+      return const Color.fromARGB(255, 5, 246, 13);
     } else if (spending < 100) {
-      return Colors.green;
+      return const Color.fromARGB(255, 4, 198, 10);
     } else {
-      return const Color.fromARGB(255, 6, 77, 8);
+      return const Color.fromARGB(255, 2, 130, 6);
     }
   }
 }
