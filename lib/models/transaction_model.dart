@@ -53,6 +53,8 @@ class DailyTransactions {
       };
 }
 
+/// Code to generate some mock data for the grid
+
 List<DailyTransactions> generateMockData() {
   List<DailyTransactions> dailyTransactionsList = [];
   DateTime now = DateTime.now();

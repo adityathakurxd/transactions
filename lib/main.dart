@@ -16,9 +16,12 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData.from(
-            colorScheme:
-                ColorScheme.fromSeed(seedColor: const Color(0xFFFE480F))),
-        home: const TransactionScreen());
+      theme: ThemeData.from(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFFE480F),
+        ),
+      ),
+      home: const TransactionScreen(),
+    );
   }
 }

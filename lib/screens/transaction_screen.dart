@@ -12,12 +12,12 @@ class TransactionScreen extends StatelessWidget {
     return Consumer(
       builder: (context, ref, child) {
         final AsyncValue transactions = ref.watch(transactionProvider);
-
         return Center(
           child: switch (transactions) {
             AsyncData(:final value) => TransactionsGrid(transactions: value),
-            AsyncError(:final error) =>
-              Text('Oops, something unexpected happened $error'),
+            AsyncError(:final error) => Scaffold(
+                body: Text('Oops, something unexpected happened $error'),
+              ),
             _ => const CircularProgressIndicator(),
           },
         );
@@ -33,55 +33,69 @@ class TransactionsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      gridDelegate:
-          const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 30),
-      itemCount: transactions.length,
-      itemBuilder: (context, index) {
-        Color color = _getColorForSpending(transactions[index].amount);
-        return GestureDetector(
-          onTap: () {
-            if (transactions[index].transactions.length > 1) {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return ListView.builder(
-                    itemCount: transactions[index].transactions.length,
-                    itemBuilder: (context, innerIndex) {
-                      Transaction transaction =
-                          transactions[index].transactions[innerIndex];
-                      return ListTile(
-                        title: Text(transaction.category),
-                        subtitle: Text(DateFormat.yMMMMd()
-                            .format(transactions[index].date)),
-                        trailing: Text(transaction.amount.toStringAsFixed(2)),
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 14, 17, 23),
+      body: Center(
+        child: SizedBox(
+          width: 600,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 30),
+              itemCount: transactions.length,
+              itemBuilder: (context, index) {
+                Color color = _getColorForSpending(transactions[index].amount);
+                return GestureDetector(
+                  onTap: () {
+                    if (transactions[index].transactions.length > 1) {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return ListView.builder(
+                            itemCount: transactions[index].transactions.length,
+                            itemBuilder: (context, innerIndex) {
+                              Transaction transaction =
+                                  transactions[index].transactions[innerIndex];
+                              return ListTile(
+                                title: Text(transaction.category),
+                                subtitle: Text(DateFormat.yMMMMd()
+                                    .format(transactions[index].date)),
+                                trailing:
+                                    Text(transaction.amount.toStringAsFixed(2)),
+                              );
+                            },
+                          );
+                        },
                       );
-                    },
-                  );
-                },
-              );
-            } else {
-              print('No transaction available at index 1');
-            }
-          },
-          child: Container(
-            color: color,
-            margin: const EdgeInsets.all(2.0),
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text("No transaction available at the moment"),
+                      ));
+                    }
+                  },
+                  child: Container(
+                    color: color,
+                    margin: const EdgeInsets.all(2.0),
+                  ),
+                );
+              },
+            ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   Color _getColorForSpending(double spending) {
     if (spending == 0) {
       return Colors.white;
-    } else if (spending < 50) {
-      return const Color.fromARGB(255, 5, 246, 13);
-    } else if (spending < 100) {
-      return const Color.fromARGB(255, 4, 198, 10);
+    } else if (spending < 200) {
+      return const Color.fromARGB(255, 13, 68, 41);
+    } else if (spending < 500) {
+      return const Color.fromARGB(255, 38, 166, 65);
     } else {
-      return const Color.fromARGB(255, 2, 130, 6);
+      return const Color.fromARGB(255, 57, 211, 83);
     }
   }
 }
