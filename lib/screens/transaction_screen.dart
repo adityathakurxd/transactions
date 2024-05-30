@@ -37,75 +37,115 @@ class TransactionsGrid extends StatelessWidget {
     int rows = 7;
     int columns = (reversedTransactions.length / rows).ceil();
 
+    List<String> monthHeaders =
+        _generateMonthHeaders(reversedTransactions, rows, columns);
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 14, 17, 23),
       body: Center(
-        child: SizedBox(
-          width: 600,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columns,
-                crossAxisSpacing: 2.0,
-                mainAxisSpacing: 2.0,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: monthHeaders.expand((month) {
+                  return [
+                    Text(
+                      month,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    const Spacer(),
+                  ];
+                }).toList(),
               ),
-              itemCount: reversedTransactions.length,
-              itemBuilder: (context, index) {
-                int column = index % columns;
-                int row = index ~/ columns;
-                int actualIndex = row + column * rows;
+              const SizedBox(height: 5),
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    crossAxisSpacing: 2.0,
+                    mainAxisSpacing: 2.0,
+                  ),
+                  itemCount: reversedTransactions.length,
+                  itemBuilder: (context, index) {
+                    int column = index % columns;
+                    int row = index ~/ columns;
+                    int actualIndex = row + column * rows;
 
-                if (actualIndex >= reversedTransactions.length) {
-                  return Container(); // Return an empty container if out of range
-                }
+                    if (actualIndex >= reversedTransactions.length) {
+                      return Container();
+                    }
 
-                Color color = _getColorForSpending(
-                    reversedTransactions[actualIndex].amount);
+                    Color color = _getColorForSpending(
+                        reversedTransactions[actualIndex].amount);
 
-                return GestureDetector(
-                  onTap: () {
-                    if (reversedTransactions[actualIndex].transactions.length >
-                        1) {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return ListView.builder(
-                            itemCount: reversedTransactions[actualIndex]
+                    return GestureDetector(
+                      onTap: () {
+                        if (reversedTransactions[actualIndex]
                                 .transactions
-                                .length,
-                            itemBuilder: (context, innerIndex) {
-                              Transaction transaction =
-                                  reversedTransactions[actualIndex]
-                                      .transactions[innerIndex];
-                              return ListTile(
-                                title: Text(transaction.category),
-                                subtitle: Text(DateFormat.yMMMMd().format(
-                                    reversedTransactions[actualIndex].date)),
-                                trailing:
-                                    Text(transaction.amount.toStringAsFixed(2)),
+                                .length >
+                            1) {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) {
+                              return ListView.builder(
+                                itemCount: reversedTransactions[actualIndex]
+                                    .transactions
+                                    .length,
+                                itemBuilder: (context, innerIndex) {
+                                  Transaction transaction =
+                                      reversedTransactions[actualIndex]
+                                          .transactions[innerIndex];
+                                  return ListTile(
+                                    title: Text(transaction.category),
+                                    subtitle: Text(DateFormat.yMMMMd().format(
+                                        reversedTransactions[actualIndex]
+                                            .date)),
+                                    trailing: Text(
+                                        transaction.amount.toStringAsFixed(2)),
+                                  );
+                                },
                               );
                             },
                           );
-                        },
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text("No transaction available at the moment"),
-                      ));
-                    }
+                        } else {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                            content:
+                                Text("No transaction available at the moment"),
+                          ));
+                        }
+                      },
+                      child: Container(
+                        color: color,
+                        margin: const EdgeInsets.all(2.0),
+                      ),
+                    );
                   },
-                  child: Container(
-                    color: color,
-                    margin: const EdgeInsets.all(2.0),
-                  ),
-                );
-              },
-            ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  List<String> _generateMonthHeaders(
+      List<DailyTransactions> transactions, int rows, int columns) {
+    List<String> monthHeaders = [];
+    for (int i = 0; i < columns; i++) {
+      int actualIndex = i * rows;
+      if (actualIndex < transactions.length) {
+        String month = DateFormat.MMM().format(transactions[actualIndex].date);
+        if (monthHeaders.isEmpty || monthHeaders.last != month) {
+          monthHeaders.add(month);
+        }
+      }
+    }
+    return monthHeaders;
   }
 
   Color _getColorForSpending(double spending) {
