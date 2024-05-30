@@ -33,6 +33,10 @@ class TransactionsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reversedTransactions = transactions.reversed.toList();
+    int rows = 7;
+    int columns = (reversedTransactions.length / rows).ceil();
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 14, 17, 23),
       body: Center(
@@ -41,26 +45,43 @@ class TransactionsGrid extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 30),
-              itemCount: transactions.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                crossAxisSpacing: 2.0,
+                mainAxisSpacing: 2.0,
+              ),
+              itemCount: reversedTransactions.length,
               itemBuilder: (context, index) {
-                Color color = _getColorForSpending(transactions[index].amount);
+                int column = index % columns;
+                int row = index ~/ columns;
+                int actualIndex = row + column * rows;
+
+                if (actualIndex >= reversedTransactions.length) {
+                  return Container(); // Return an empty container if out of range
+                }
+
+                Color color = _getColorForSpending(
+                    reversedTransactions[actualIndex].amount);
+
                 return GestureDetector(
                   onTap: () {
-                    if (transactions[index].transactions.length > 1) {
+                    if (reversedTransactions[actualIndex].transactions.length >
+                        1) {
                       showModalBottomSheet(
                         context: context,
                         builder: (context) {
                           return ListView.builder(
-                            itemCount: transactions[index].transactions.length,
+                            itemCount: reversedTransactions[actualIndex]
+                                .transactions
+                                .length,
                             itemBuilder: (context, innerIndex) {
                               Transaction transaction =
-                                  transactions[index].transactions[innerIndex];
+                                  reversedTransactions[actualIndex]
+                                      .transactions[innerIndex];
                               return ListTile(
                                 title: Text(transaction.category),
-                                subtitle: Text(DateFormat.yMMMMd()
-                                    .format(transactions[index].date)),
+                                subtitle: Text(DateFormat.yMMMMd().format(
+                                    reversedTransactions[actualIndex].date)),
                                 trailing:
                                     Text(transaction.amount.toStringAsFixed(2)),
                               );
