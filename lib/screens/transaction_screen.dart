@@ -40,6 +40,10 @@ class TransactionsGrid extends StatelessWidget {
     List<String> monthHeaders =
         _generateMonthHeaders(reversedTransactions, rows, columns);
 
+    double maxSpending = transactions
+        .map((t) => t.totalAmountSpent)
+        .reduce((a, b) => a > b ? a : b);
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 14, 17, 23),
       body: Center(
@@ -79,7 +83,8 @@ class TransactionsGrid extends StatelessWidget {
                     }
 
                     Color color = _getColorForSpending(
-                        reversedTransactions[actualIndex].amount);
+                        reversedTransactions[actualIndex].totalAmountSpent,
+                        maxSpending);
 
                     return GestureDetector(
                       onTap: () {
@@ -100,11 +105,18 @@ class TransactionsGrid extends StatelessWidget {
                                           .transactions[innerIndex];
                                   return ListTile(
                                     title: Text(transaction.category),
-                                    subtitle: Text(DateFormat.yMMMMd().format(
+                                    subtitle: Row(
+                                      children: [
+                                        transaction.isCredit
+                                            ? Container()
+                                            : const Text("-"),
+                                        Text(transaction.amount
+                                            .toStringAsFixed(2)),
+                                      ],
+                                    ),
+                                    trailing: Text(DateFormat.yMMMMd().format(
                                         reversedTransactions[actualIndex]
                                             .date)),
-                                    trailing: Text(
-                                        transaction.amount.toStringAsFixed(2)),
                                   );
                                 },
                               );
@@ -148,15 +160,9 @@ class TransactionsGrid extends StatelessWidget {
     return monthHeaders;
   }
 
-  Color _getColorForSpending(double spending) {
-    if (spending == 0) {
-      return Colors.white;
-    } else if (spending < 200) {
-      return const Color.fromARGB(255, 13, 68, 41);
-    } else if (spending < 500) {
-      return const Color.fromARGB(255, 38, 166, 65);
-    } else {
-      return const Color.fromARGB(255, 57, 211, 83);
-    }
+  Color _getColorForSpending(double spending, double maxSpending) {
+    double normalizedSpending = spending / maxSpending;
+    double brightness = normalizedSpending.clamp(0, 1);
+    return HSVColor.fromAHSV(1.0, 120, 1.0, brightness).toColor();
   }
 }

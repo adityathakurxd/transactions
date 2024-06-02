@@ -3,32 +3,31 @@ import 'dart:math';
 class Transaction {
   final String category;
   final double amount;
+  final bool isCredit;
 
-  Transaction({required this.category, required this.amount});
+  Transaction(
+      {required this.category, required this.amount, required this.isCredit});
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     return Transaction(
-      category: json['category'],
-      amount: json['amount'].toDouble(),
-    );
+        category: json['category'],
+        amount: json['amount'].toDouble(),
+        isCredit: json['isCredit']);
   }
 
-  Map<String, dynamic> toJson() => {
-        'category': category,
-        'amount': amount,
-      };
+  Map<String, dynamic> toJson() =>
+      {'category': category, 'amount': amount, 'isCredit': isCredit};
 }
 
 class DailyTransactions {
   final DateTime date;
-  final double amount;
-  final String description;
+  final double totalAmountSpent;
+
   final List<Transaction> transactions;
 
   DailyTransactions({
     required this.date,
-    required this.amount,
-    required this.description,
+    required this.totalAmountSpent,
     required this.transactions,
   });
 
@@ -39,16 +38,14 @@ class DailyTransactions {
 
     return DailyTransactions(
       date: DateTime.parse(json['date']),
-      amount: json['amount'].toDouble(),
-      description: json['description'],
+      totalAmountSpent: json['totalAmountSpent'].toDouble(),
       transactions: transactionsList,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'date': date.toIso8601String(),
-        'amount': amount,
-        'description': description,
+        'totalAmountSpent': totalAmountSpent,
         'transactions': transactions.map((t) => t.toJson()).toList(),
       };
 }
@@ -71,19 +68,44 @@ List<DailyTransactions> generateMockData() {
   for (int i = 0; i < 365; i++) {
     DateTime date = now.subtract(Duration(days: i));
     List<Transaction> transactions = [];
-    double totalAmount = random.nextDouble() * 1000;
+    double totalAmountSpent = 0.0;
+
+    // Monthly salary credit
+    if (date.day == 1) {
+      transactions.add(Transaction(
+        category: 'Salary',
+        amount: 5000.0 + random.nextDouble() * 1000, // Salary range
+        isCredit: true,
+      ));
+    }
+
+    // Random friend transfer credit
+    if (random.nextDouble() < 0.05) {
+      // 5% chance of receiving money from a friend
+      transactions.add(Transaction(
+        category: 'Received from Friend',
+        amount: 50.0 + random.nextDouble() * 200, // Random amount from friend
+        isCredit: true,
+      ));
+    }
+
+    // Daily expenses debit
+    double dailyExpenseTotal = random.nextDouble() * 1000;
     List<double> amounts =
-        _generateRandomAmounts(totalAmount, categories.length, random);
+        _generateRandomAmounts(dailyExpenseTotal, categories.length, random);
 
     for (int j = 0; j < categories.length; j++) {
-      transactions
-          .add(Transaction(category: categories[j], amount: amounts[j]));
+      transactions.add(Transaction(
+        category: categories[j],
+        amount: amounts[j],
+        isCredit: false,
+      ));
+      totalAmountSpent += amounts[j];
     }
 
     dailyTransactionsList.add(DailyTransactions(
       date: date,
-      amount: totalAmount,
-      description: 'Mock transactions for the day',
+      totalAmountSpent: totalAmountSpent,
       transactions: transactions,
     ));
   }
@@ -103,4 +125,11 @@ List<double> _generateRandomAmounts(double total, int parts, Random random) {
   amounts.add(remaining);
 
   return amounts;
+}
+
+double calculateTotalSpending(List<DailyTransactions> transactions) {
+  return transactions
+      .expand((daily) => daily.transactions)
+      .where((transaction) => !transaction.isCredit)
+      .fold(0.0, (sum, transaction) => sum + transaction.amount);
 }
