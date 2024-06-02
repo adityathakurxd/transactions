@@ -44,51 +44,53 @@ class TransactionWidget extends StatelessWidget {
         .map((t) => t.totalAmountSpent)
         .reduce((a, b) => a > b ? a : b);
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 14, 17, 23),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: SizedBox(
-            width: 1000,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(
-                  height: 150,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Text("Mon", style: TextStyle(color: Colors.white)),
-                      Text("Wed", style: TextStyle(color: Colors.white)),
-                      Text("Fri", style: TextStyle(color: Colors.white)),
-                    ],
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 14, 17, 23),
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: SizedBox(
+              width: 1000,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(
+                    height: 150,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text("Mon", style: TextStyle(color: Colors.white)),
+                        Text("Wed", style: TextStyle(color: Colors.white)),
+                        Text("Fri", style: TextStyle(color: Colors.white)),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      MonthHeaderWidget(monthHeaders: monthHeaders),
-                      const SizedBox(height: 5),
-                      Expanded(
-                          child: TransactionGrid(
-                        rows: rows,
-                        columns: columns,
-                        reversedTransactions: reversedTransactions,
-                        maxSpending: maxSpending,
-                      )),
-                    ],
+                  const SizedBox(
+                    width: 10,
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        MonthHeaderWidget(monthHeaders: monthHeaders),
+                        const SizedBox(height: 5),
+                        Expanded(
+                            child: TransactionGrid(
+                          rows: rows,
+                          columns: columns,
+                          reversedTransactions: reversedTransactions,
+                          maxSpending: maxSpending,
+                        )),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -198,8 +200,18 @@ class TransactionGrid extends StatelessWidget {
                           children: [
                             transaction.isCredit
                                 ? Container()
-                                : const Text("-"),
-                            Text(transaction.amount.toStringAsFixed(2)),
+                                : const Text(
+                                    "-",
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                            Text(
+                              transaction.amount.toStringAsFixed(2),
+                              style: TextStyle(
+                                color: transaction.isCredit
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
                           ],
                         ),
                         trailing: Text(DateFormat.yMMMMd()
